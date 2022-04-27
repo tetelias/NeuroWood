@@ -1,0 +1,4 @@
+nose
+opencv-python
+pandas
+scikit-learn
