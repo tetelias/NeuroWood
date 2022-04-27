@@ -20,7 +20,7 @@ from fmix import fmix
 from progress.bar import Bar
 
 ROOT = Path('data/')
-
+RESIZED_FOLDER = 'square'
 
 class AverageMeter(object):
     """Computes and stores the average and current value
@@ -96,7 +96,7 @@ def testing_loop(val_tfms: Compose, model: Module, config: ArgumentParser, resul
     model_paths = [str(mp) for mp in SAVE_PATH.iterdir()]
     ckpt = torch.load(model_paths[0], map_location='cpu')
     model.load_state_dict(ckpt["state_dict"], strict=False)
-    test_file_list = sorted(list(Path(ROOT/'square'/config.test_fldr).iterdir()), key=sort_test_files)
+    test_file_list = sorted(list(Path(ROOT/RESIZED_FOLDER/config.test_fldr).iterdir()), key=sort_test_files)
     id_list = [int(fp.stem) for fp in test_file_list]
     test_dataset = Test_DS(test_file_list, transform=val_tfms)
     test_loader = DataLoader(test_dataset, batch_size=config.bs, shuffle=False,
