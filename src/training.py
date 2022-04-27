@@ -69,7 +69,7 @@ def main(config: argparse.ArgumentParser) -> None:
     model = model.cuda()
 
     if config.predict:
-        testing_loop(val_tfms, model, config, f'{config.result_name}.csv', SAVE_PATH)
+        testing_loop(val_tfms, model, config, f'{config.test_fldr}.csv', SAVE_PATH)
         return 1
 
     if config.validate:

@@ -119,7 +119,7 @@ def testing_loop(val_tfms: Compose, model: Module, config: ArgumentParser, resul
     df = pd.read_csv(ROOT/result_name)
     df['class'] = res
     df.loc[df['class'] == 2, 'class'] = 3
-    df.to_csv(ROOT/f'{config.test_fldr}.csv', index=False)
+    df.to_csv(ROOT/f'{result_name}.csv', index=False)
 
 
 def train(train_loader: DataLoader, model: Module, config: ArgumentParser, criterion: Module, optimizer: Optimizer, 
