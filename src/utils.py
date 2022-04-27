@@ -70,7 +70,6 @@ def test(test_loader: DataLoader, model: Module) -> torch.Tensor:
     pred_probs = []
 
     with torch.no_grad():
-
         bar = Bar('Processing', max=len(test_loader))
 
         for step, data in enumerate(test_loader):
@@ -97,27 +96,27 @@ def testing_loop(val_tfms: Compose, model: Module, config: ArgumentParser, resul
     model_paths = [str(mp) for mp in SAVE_PATH.iterdir()]
     ckpt = torch.load(model_paths[0], map_location='cpu')
     model.load_state_dict(ckpt["state_dict"], strict=False)
-
-    test_dataset = Test_DS(sorted(list(Path(ROOT/config.test_fldr).iterdir()), key=sort_test_files), transform=val_tfms)
+    test_file_list = sorted(list(Path(ROOT/'square'/config.test_fldr).iterdir()), key=sort_test_files)
+    id_list = [int(fp.stem) for fp in test_file_list]
+    test_dataset = Test_DS(test_file_list, transform=val_tfms)
     test_loader = DataLoader(test_dataset, batch_size=config.bs, shuffle=False,
                              num_workers=config.workers, pin_memory=True)
     if len(model_paths) > 1:
         total_probs = []
-        probs = test(test_loader, model, config)
+        probs = test(test_loader, model)
         total_probs.append(probs)
         for i in range(1, len(model_paths)):
             ckpt = torch.load(SAVE_PATH/model_paths[i], map_location='cpu')
             model.load_state_dict(ckpt["state_dict"], strict=False)
 
-            probs = test(test_loader, model, config)
+            probs = test(test_loader, model)
             total_probs.append(probs)
         total_probs = torch.stack(total_probs).mean(0)
     else:
-        total_probs = test(test_loader, model, config)
+        total_probs = test(test_loader, model)
 
     res = torch.argmax(total_probs, dim=1).numpy()
-    df = pd.read_csv(ROOT/result_name)
-    df['class'] = res
+    df = pd.DataFrame(zip(id_list, res), columns=['id', 'class'])
     df.loc[df['class'] == 2, 'class'] = 3
     df.to_csv(ROOT/f'{result_name}.csv', index=False)
 
@@ -288,7 +287,7 @@ def validation_loop(val_tfms: Compose, model: Module, config: ArgumentParser, cr
         num_workers=config.workers, pin_memory=True)
 
     if len(model_paths) > 1:
-        _, _, = validate(val_loader, model, config, criterion)
+        _, _, = validate(val_loader, model, criterion)
         for i in range(1, len(model_paths)):
             fold = int(str(model_paths[i]).split('_f')[1][0])
             print(model_paths[i].stem)
@@ -302,6 +301,6 @@ def validation_loop(val_tfms: Compose, model: Module, config: ArgumentParser, cr
                 val_ds, batch_size=config.bs, shuffle=False,
                 num_workers=config.workers, pin_memory=True)
 
-            _, _, = validate(val_loader, model, config, criterion)
+            _, _, = validate(val_loader, model, criterion)
     else:
-        _, _, = validate(val_loader, model, config, criterion)
+        _, _, = validate(val_loader, model, criterion)
